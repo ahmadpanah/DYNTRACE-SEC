@@ -1,69 +1,129 @@
-# DYNTRACE-SEC: Adaptive Container Security through Dynamic Load-Sensitive Segmentation and Trust-Weighted Policy Enforcement
+# DYNTRACE-SEC: Adaptive Container Security Framework (Simulation)
 
-![Python Version](https://img.shields.io/badge/Python-3.8%2B-blue.svg)
-![Dependencies](https://img.shields.io/badge/Dependencies-Docker%2CKubernetes%2CSciKit--learn%2CNumpy-green.svg)
-![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)
+DYNTRACE-SEC (Dynamic Trust-Tiered Adaptive Container Enforcement and Segmentation) is a novel framework designed to provide resilient, intelligent, and adaptive network security for dynamic containerized environments. This repository contains a Python simulation of the core components and algorithms described in the DYNTRACE-SEC paper.
 
-## Table of Contents
-1.  [Introduction](#1-introduction)
-2.  [Features](#2-features)
-3.  [Architecture](#3-architecture)
-4.  [Getting Started](#4-getting-started)
-    *   [Prerequisites](#prerequisites)
-    *   [Installation](#installation)
-    *   [Running the Simulation](#running-the-simulation)
-5.  [Configuration](#5-configuration)
-6.  [Simulation Details & Limitations](#6-simulation-details--limitations)
-7.  [Evaluation Summary](#7-evaluation-summary)
-8.  [Future Work](#8-future-work)
-9.  [Authors](#9-authors)
-10. [License](#10-license)
+## 🌟 Features
 
-## 1. Introduction
+DYNTRACE-SEC advances container security through three synergistic innovations:
 
-Containerization, the backbone of modern cloud-native architectures, offers unparalleled agility, scalability, and resource optimization. However, it introduces a complex attack surface due to shared kernel architectures and the ephemeral, high-churn nature of container lifecycles. Traditional static security policies often prove insufficient, leading to either overly permissive or excessively restrictive measures.
+1.  **Container Behavioral Profiling:** Collects and processes container runtime data, primarily system call patterns, into structured behavioral vectors using a simulated eBPF-based agent and TF-IDF vectorization.
+2.  **Dynamic, Load-Sensitive Segmentation (DAP-LSP):**
+    *   Employs an adapted Affinity Propagation algorithm to group containers into behaviorally coherent security segments.
+    *   Dynamically adjusts the number and granularity of these segments in direct response to real-time network and system load (simulated).
+    *   Effectively segregates anomalous or potentially malicious containers based on their syscall patterns.
+3.  **Trust-Score Weighted Adaptive Policy Enforcement (TWAPE):**
+    *   **Segment Trust Score Calculation:** Continuously computes a continuous, multi-faceted "Trust Score" for each security segment, integrating factors like behavioral cohesion, anomaly indications, vulnerability posture, and historical interaction reputation.
+    *   **Adaptive Policy Engine:** Uses these trust scores to dynamically determine and apply granular, proportionally weighted security policies to inter-segment communications (e.g., increased logging, rate limiting, selective deep packet inspection, or outright blocking).
+4.  **Isolation Enforcement (Simulated):** Translates dynamic policy decisions into actionable network controls, simulating interactions with mechanisms like eBPF and Kubernetes Network Policies.
 
-**DYNTRACE-SEC** (Dynamic Trust-Tiered Adaptive Container Enforcement and Segmentation) is a novel framework designed to address these challenges by providing resilient, intelligent, and adaptive network security for containerized environments. It achieves this through a synergistic, two-stage methodology:
+## 💡 How it Works (Architectural Overview)
 
-1.  **Dynamic Affinity Propagation with Load-Sensitive Pruning (DAP-LSP):** Intelligently partitions containers into behaviorally coherent security segments, dynamically adapting segment granularity based on real-time network and system load.
-2.  **Trust-Score Weighted Adaptive Policy Enforcement (TWAPE):** Computes a continuous, multi-faceted "Trust Score" for each segment and applies granular, context-aware, and proportionally weighted security policies to inter-segment communications, moving beyond simplistic allow/deny rules.
+The simulation mirrors the DYNTRACE-SEC framework's two-stage methodology:
 
-## 2. Features
+1.  **Profiling & Segmentation Cycle:**
+    *   The `BehavioralProfiler` continuously simulates syscall collection and vectorizes this data.
+    *   The `DAP_LSP` module takes these behavioral vectors and a simulated `load_idx` to perform adaptive clustering. It adjusts the number of segments based on the load, ensuring operational manageability.
+    *   Containers are then assigned their respective segment IDs.
+2.  **Trust-Weighted Policy Enforcement Cycle:**
+    *   The `TrustScoreManager` calculates a comprehensive `Trust Score` for each segment by considering various simulated security and behavioral metrics.
+    *   The `PolicyEngine` evaluates simulated communication requests between containers. Based on the Trust Scores of the source and destination segments, it determines a dynamic enforcement `action` (e.g., `ALLOW`, `ALLOW_WITH_SCRUTINY`, `BLOCK`) and granular `parameters` (e.g., `log_level`, `rate_limit_bps`, `dpi_enabled`).
+    *   The `EnforcementModule` simulates the application of these policies, providing feedback to the `TrustScoreManager` to update historical reputation.
 
-*   **Dynamic, Load-Sensitive Segmentation (DAP-LSP):**
-    *   Groups containers based on system call patterns and other behavioral traits.
-    *   Adapts the number and granularity of security segments dynamically in response to current network and system load.
-    *   Leverages Affinity Propagation for exemplar-based clustering.
-*   **Multi-faceted Trust Score Calculation:**
-    *   Continuously computes a Trust Score for each segment, integrating factors like behavioral cohesion, anomaly indications, vulnerability posture, and historical interaction reputation.
-*   **Trust-Weighted Adaptive Policy Enforcement (TWAPE):**
-    *   Applies granular security policies (ALLOW, ALLOW_WITH_SCRUTINY, BLOCK) with intensity scaled by the Trust Scores of communicating segments.
-    *   Enables dynamic adjustments such as increased logging, rate limiting, selective deep packet inspection (DPI), or outright blocking based on assessed risk.
-*   **Real-time Container Discovery:** Integrates with Docker and Kubernetes APIs to discover and monitor running containers.
-*   **Behavioral Profiling:** Processes system call sequences into TF-IDF vectors to represent unique container behaviors.
-*   **Simulated Attack Scenarios:** Includes mechanisms to simulate various network attacks (e.g., reverse shells, network scans, data exfiltration) to test efficacy.
+This continuous feedback loop allows DYNTRACE-SEC to intelligently adapt its security posture to evolving workload behaviors and environmental conditions.
 
-## 3. Architecture
+## 🛠️ Installation & Setup
 
-DYNTRACE-SEC operates through a tightly integrated architecture comprising several key modules:
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/ahmadpanah/DYNTRACE-SEC.git
+    cd DYNTRACE-SEC
+    ```
 
-1.  **Container Discovery & Behavioral Profiling Module:**
-    *   **Container Discovery (New in this implementation):** Connects to Docker or Kubernetes API to identify active containers, their names, images, and labels.
-    *   **Data Acquisition & Feature Engineering (Simulated):** Simulates the collection of system call sequences (e.g., via eBPF probes in a real system) for each running container and transforms them into behavioral vectors using TF-IDF.
-2.  **Dynamic, Load-Sensitive Segmentation Module (DAP-LSP):**
-    *   Receives behavioral vectors and real-time system load index.
-    *   Uses an adapted Affinity Propagation algorithm to cluster containers into security segments.
-    *   Dynamically adjusts segment granularity (number of segments) based on the observed load, consolidating segments under high load and allowing finer-grained isolation under low load.
-3.  **Segment Trust Score Calculation and Management Module (TWAPE Component):**
-    *   Calculates a continuous Trust Score for each segment by considering:
-        *   Intra-segment behavioral cohesion.
-        *   Aggregated anomaly indications from member containers.
-        *   Vulnerability posture derived from container images.
-        *   Historical interaction reputation based on past policy outcomes.
-        *   Exemplar stability and segment age.
-4.  **Trust-Weighted Adaptive Policy Engine (TWAPE Core):**
-    *   Takes the Trust Scores of source and destination segments, along with communication context (protocol, port).
-    *   Determines the appropriate `EnforcementAction` (BLOCK, ALLOW_WITH_SCRUTINY, ALLOW) and `EnforcementParameters` (e.g., logging level, rate limit, DPI enablement) based on a configurable risk profile.
-5.  **Isolation Enforcement Module (Simulated):**
-    *   Translates policy decisions into actionable network controls.
-    *   In a real system, this would program eBPF maps, Kubernetes Network Policies, or host firewalls. In this simulation, it logs the intended actions and their simulated effects (e.g., latency impact).
+2.  **Create a Python Virtual Environment (recommended):**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    pip install numpy scikit-learn docker kubernetes
+    ```
+
+4.  **Docker / Kubernetes Setup (Optional for simulation, but recommended for realistic discovery):**
+    *   **Docker:** Ensure your Docker daemon is running if you intend to use `use_kubernetes=False` and have real Docker containers running.
+    *   **Kubernetes:**
+        *   Ensure you have a running Kubernetes cluster.
+        *   Your `~/.kube/config` file should be correctly configured to access your cluster.
+        *   If running inside a cluster, ensure the Python script's pod has appropriate RBAC permissions (`list pods` and `get pods` in all namespaces).
+        *   Deploy some sample applications (e.g., Nginx, PostgreSQL, Redis pods) to see container discovery in action.
+
+## 🚀 Usage
+
+Run the main simulation script:
+
+```bash
+python main.py
+```
+
+The script will:
+1.  Attempt to discover running containers from your Kubernetes cluster (if `use_kubernetes=True` and `kubeconfig` is found/in-cluster config works).
+2.  Fall back to Docker container discovery if Kubernetes fails or is disabled.
+3.  If no real containers are found via Docker/Kubernetes, it will generate dummy containers for the simulation.
+4.  Randomly mark a configurable number of containers as "malicious" for testing purposes.
+5.  Execute several DYNTRACE-SEC operational cycles, involving:
+    *   Syscall collection and behavioral vectorization.
+    *   Dynamic segmentation (DAP-LSP).
+    *   Trust score calculation (TWAPE Component).
+    *   Simulated inter-container communications, with policy enforcement (TWAPE Core & Enforcement Module).
+    *   Randomly injecting "attack" scenarios from malicious containers.
+
+You will see detailed console output demonstrating each step, including segment formation, trust score updates, and policy decisions for simulated communications.
+
+### Configuration Options in `main.py`:
+
+You can modify the `DYNTRACE_SEC_Controller` initialization in `main.py` to change simulation behavior:
+
+```python
+if __name__ == "__main__":
+    random.seed(42)
+    np.random.seed(42)
+
+    # Example: Run with Kubernetes discovery and 5 malicious containers
+    controller = DYNTRACE_SEC_Controller(num_malicious_to_simulate=5, use_kubernetes=True)
+
+    # Example: Run with Docker discovery (or dummy if Docker not available) and 3 malicious containers
+    # controller = DYNTRACE_SEC_Controller(num_malicious_to_simulate=3, use_kubernetes=False)
+
+    # Simulate 5 cycles, starting with medium load, and 15 communications per cycle
+    controller.simulate_full_cycle(num_cycles=5, initial_load_idx=0.5, comm_per_cycle=15)
+```
+
+## 🧪 Simulation Details and Limitations
+
+*   **Simulated Data:** System call sequences, vulnerability scores, and network load are simulated for demonstration purposes. In a real deployment, these would be collected from live systems (e.g., via eBPF, vulnerability scanners, network monitoring).
+*   **Policy Enforcement:** The `EnforcementModule` provides print statements describing the policy actions (BLOCK, ALLOW_WITH_SCRUTINY, ALLOW) and parameters (DPI, rate limiting, logging), but does not interact with a live network data plane (e.g., by configuring `iptables`, `eBPF` maps, or Kubernetes `NetworkPolicy` objects).
+*   **Container Discovery:** The `_discover_and_initialize_containers` method attempts to connect to Docker or Kubernetes APIs to get *metadata* about running containers. It does *not* deploy or manage containers, nor does it collect live syscalls from them. It simply initializes `Container` objects for the simulation logic.
+*   **Performance:** The simulation focuses on algorithmic logic and does not accurately measure real-world performance overheads (CPU, memory, latency) of a production-grade DYNTRACE-SEC deployment, which would require specialized benchmarking.
+
+This simulation is an educational tool to understand the complex interactions and adaptive logic of DYNTRACE-SEC.
+
+## 📂 Project Structure
+
+*   `DYNTRACE-SEC.py`: Orchestrates the entire simulation, initializing the controller and running the main cycles.
+*   `Container` class: Represents a container with its attributes (ID, name, type, syscalls, anomaly, trust scores).
+*   `SyscallGenerator` class: Simulates the generation of benign and malicious system call sequences.
+*   `BehavioralProfiler` class: Manages syscall collection and vectorization (TF-IDF).
+*   `DAP_LSP` class: Implements the Dynamic Affinity Propagation with Load-Sensitive Pruning algorithm for segmentation.
+*   `TrustScoreManager` class: Calculates and manages the multi-faceted Trust Scores for segments.
+*   `PolicyEngine` class: Determines adaptive policy actions based on segment trust scores and communication context.
+*   `EnforcementModule` class: Simulates the application of security policies.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to open issues or submit pull requests.
+
+## 📄 License
+
+This project is open-source and available under the [MIT License](LICENSE).
+```
