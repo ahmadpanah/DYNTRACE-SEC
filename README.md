@@ -1,4 +1,4 @@
-# DYNTRACE-SEC: Adaptive Container Security Framework (Simulation)
+# DYNTRACE-SEC: Adaptive Container Security Framework
 
 DYNTRACE-SEC (Dynamic Trust-Tiered Adaptive Container Enforcement and Segmentation) is a novel framework designed to provide resilient, intelligent, and adaptive network security for dynamic containerized environments. This repository contains a Python simulation of the core components and algorithms described in the DYNTRACE-SEC paper.
 
