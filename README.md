@@ -126,4 +126,3 @@ Contributions are welcome! Please feel free to open issues or submit pull reques
 ## 📄 License
 
 This project is open-source and available under the [MIT License](LICENSE).
-```
